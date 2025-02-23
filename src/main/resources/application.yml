@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/api}
+
+aws:
+  region: ${AWS_REGION:us-east-1}
+  access-key-id: ${AWS_ACCESS_KEY_ID}
+  secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+  cognito:
+    userPoolId: ${AWS_COGNITO_USER_POOL_ID}
+  sqs:
+    queue-url: ${AWS_SQS_QUEUE_URL}
+    dlq-url: ${AWS_SQS_DLQ_URL}
+    fixed-rate-ms: ${AWS_SQS_FIXED_RATE_MS:60000} # 1 minute (in milliseconds)
+    max-messages: ${AWS_SQS_MAX_MESSAGES:5}       # Max messages per request
+    wait-time-seconds: ${AWS_SQS_WAIT_TIME_SECONDS:10} # Long polling wait time
+  ses:
+    sender-email: ${AWS_SES_SENDER_EMAIL}
+
+spring:
+  application:
+    name: picbank-auth-service
+
+  messages:
+    basename: messages
+    encoding: ${SPRING_MESSAGES_ENCODING:UTF-8}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          cognito:
+            client-id: ${AWS_COGNITO_CLIENT_ID}
+            client-secret: ${AWS_COGNITO_CLIENT_SECRET}
+            client-authentication-method: post
+            authorization-grant-type: authorization_code
+            redirect-uri: ${AWS_COGNITO_REDIRECT_URI:http://localhost:8080/api/login/oauth2/code/cognito}
+            scope: openid, profile, email
+        provider:
+          cognito:
+            issuerUri: ${AWS_COGNITO_ISSUER_URI}
+            user-name-attribute: username
+            jwk-set-uri: ${AWS_COGNITO_JWK_SET_URI}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+    version: openapi_3_0

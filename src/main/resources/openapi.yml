@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Auth Service API
+  description: API for managing authentication and authorization with AWS Cognito
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user in AWS Cognito
+      operationId: register
+      x-controller: AuthController
+      requestBody:
+        description: User registration data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Login a user using AWS Cognito
+      operationId: login
+      x-controller: AuthController
+      requestBody:
+        description: User login data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (Invalid credentials)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - name
+        - document
+        - email
+        - password
+        - isMerchant
+      properties:
+        name:
+          type: string
+        document:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        isMerchant:
+          type: boolean
+          example: false
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        expiresIn:
+          type: integer
+        tokenType:
+          type: string
+        refreshToken:
+          type: string
+        idToken:
+          type: string
+        newDeviceMetadata:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
+        code:
+          type: string
+          description: Custom error code
+        message:
+          type: string
+          description: Error message
+        details:
+          type: array
+          items:
+            type: string
+          description: Additional error details
