@@ -21,7 +21,7 @@ The **PicBank Auth Service** is a microservice responsible for user authenticati
 - [🚀 Deployment](#deployment)
 - [🤝 Contributing](#contributing)
 - [📜 License](#license)
-- [📞 Contact](#contact
+- [📞 Contact](#contact)
 
 ---
 
