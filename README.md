@@ -191,7 +191,7 @@ mvn test
 
 ## 🚀 **Deployment**
 ### **CI/CD Pipeline**
-We will configure a **GitHub Actions** workflow to automate:
+We will configure a **GitHub Actions** workflow to automate:  
 ✅ Code build  
 ✅ Run tests  
 ✅ Code quality analysis (SonarQube)  
@@ -219,5 +219,5 @@ This project is licensed under the Apache License - see the [LICENSE](LICENSE) f
 ---
 
 ## 📞 **Contact**
-📘 **LinkedIn:** [Your Name](https://linkedin.com/in/antoniocesarlopes)  
+📘 **LinkedIn:** [linkedin.com/in/antoniocesarlopes](https://linkedin.com/in/antoniocesarlopes)  
 ```
