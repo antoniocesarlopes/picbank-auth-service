@@ -10,18 +10,18 @@ The **PicBank Auth Service** is a microservice responsible for user authenticati
 ---
 
 ## 📌 **Table of Contents**  
-- [📜 About the Project](#-about-the-project)  
-- [🚀 Features](#-features)  
-- [🛠️ Tech Stack](#️-tech-stack)
-- [📂 Project Structure](#-project-structure)
-- [⚙️ Environment Variables](#-environment-variables)
+- [📜 About the Project](#about-the-project)  
+- [🚀 Features](#features)  
+- [🛠️ Tech Stack](#tech-stack)
+- [📂 Project Structure](#project-structure)
+- [⚙️ Environment Variables](#environment-variables)
 - [🏃 How to Run the Application](#how-to-run-the-application)
-- [🚀 API Documentation](#-api-documentation)  
-- [✅ Running Tests](#️-security)
-- [🚀 Deployment](#️-deployment)
-- [🤝 Contributing](#-contributing)
-- [📜 License](#️-licence)
-- [📞 Contact](#️-contact)
+- [🚀 API Documentation](#api-documentation)  
+- [✅ Running Tests](#running-tests)
+- [🚀 Deployment](#deployment)
+- [🤝 Contributing](#contributing)
+- [📜 License](#license)
+- [📞 Contact](#contact
 
 ---
 
