@@ -48,13 +48,17 @@ jobs:
       - name: 🏗️ Build do projeto
         run: mvn clean package -DskipTests
 
-      - name: ✅ Executar testes
-        run: mvn test
+      - name: ✅ Executar testes com cobertura
+        run: mvn test jacoco:report
 
       - name: 🔍 Análise de código com SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://sonarcloud.io"
           SONAR_ORG: ${{ secrets.SONAR_ORG }}
           SONAR_PROJECT_KEY: ${{ secrets.AUTH_SERVICE_SONAR_PROJECT_KEY }}
-        run: mvn sonar:sonar -Dsonar.organization=${{ secrets.SONAR_ORG }} -Dsonar.projectKey=${{ secrets.AUTH_SERVICE_SONAR_PROJECT_KEY }}
+        run: mvn sonar:sonar \
+          -Dsonar.organization=${{ secrets.SONAR_ORG }} \
+          -Dsonar.projectKey=${{ secrets.AUTH_SERVICE_SONAR_PROJECT_KEY }} \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml

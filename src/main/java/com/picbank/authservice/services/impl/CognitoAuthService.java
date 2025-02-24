@@ -21,7 +21,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import java.util.Map;
 
-import static com.picbank.authservice.constants.AppConstants.Auth.*;
+import static com.picbank.authservice.constants.AuthConstants.*;
 import static com.picbank.authservice.constants.MessageConstants.*;
 
 @Service

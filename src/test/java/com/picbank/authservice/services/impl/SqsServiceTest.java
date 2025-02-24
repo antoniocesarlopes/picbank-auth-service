@@ -8,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SqsException;
@@ -52,7 +51,7 @@ class SqsServiceTest {
         sqsService.sendMessage(email, group);
 
         // Assert
-        verify(sqsClient, times(1)).sendMessage(any(SendMessageRequest.class));
+        verify(sqsClient, times(1)).sendMessage(sendMessageRequest);
         verify(messageService, times(1)).getMessage(SQS_SEND_START, email, group);
         verify(messageService, times(1)).getMessage(SQS_SEND_SUCCESS, email, group);
     }
@@ -75,7 +74,7 @@ class SqsServiceTest {
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> sqsService.sendMessage(email, group));
-        verify(sqsClient, times(1)).sendMessage(any(SendMessageRequest.class));
+        verify(sqsClient, times(1)).sendMessage(sendMessageRequest);
         verify(messageService, times(1)).getMessage(SQS_SEND_START, email, group);
         verify(messageService, times(1)).getMessage(SQS_SEND_ERROR, email, group, "Test error message");
         verify(messageService, never()).getMessage(SQS_SEND_SUCCESS, email, group);

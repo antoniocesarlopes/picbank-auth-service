@@ -10,7 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import static com.picbank.authservice.constants.AppConstants.Auth.HASH_ALGORITHM;
+import static com.picbank.authservice.constants.AuthConstants.HASH_ALGORITHM;
 import static com.picbank.authservice.constants.MessageConstants.*;
 
 /**

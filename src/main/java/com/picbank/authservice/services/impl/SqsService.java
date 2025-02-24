@@ -2,7 +2,6 @@ package com.picbank.authservice.services.impl;
 
 import com.picbank.authservice.services.MessageService;
 import com.picbank.authservice.services.QueueService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
