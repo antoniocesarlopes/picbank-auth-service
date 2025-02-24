@@ -1,5 +1,6 @@
 package com.picbank.authservice.services.impl;
 
+import com.picbank.authservice.exceptions.SqsOperationException;
 import com.picbank.authservice.services.MessageService;
 import com.picbank.authservice.services.QueueService;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +63,7 @@ public class SqsService implements QueueService {
         } catch (SqsException e) {
             String errorMessage = messageService.getMessage(SQS_SEND_ERROR, email, group, e.awsErrorDetails().errorMessage());
             log.error(errorMessage, e);
-            throw new RuntimeException(errorMessage, e);
+            throw new SqsOperationException(errorMessage, e);
         }
     }
 

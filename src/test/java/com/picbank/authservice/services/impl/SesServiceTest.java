@@ -16,7 +16,7 @@ import static com.picbank.authservice.constants.MessageConstants.EMAIL_SENT_SUCC
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class SesServiceTest {
+class SesServiceTest {
 
     @Mock
     private SesClient sesClient;

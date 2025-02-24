@@ -25,7 +25,7 @@
         <testcontainers.version>1.20.5</testcontainers.version>
         <openapitools-generator.version>7.11.0</openapitools-generator.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.exclusions>**/components/**,**/configs/**,**/constants/**,**/exceptions/**,**/model/**</sonar.exclusions>
+        <sonar.exclusions>**/components/**,**/configs/**,**/constants/**,**/exceptions/**,**/model/**,**/com/picbank/authservice/*.java</sonar.exclusions>
 
     </properties>
 
