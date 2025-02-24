@@ -12,12 +12,13 @@ jobs:
   build-test-analyze:
     name: Build, Test and Sonar Analysis
     runs-on: ubuntu-latest
+    environment: picbank
 
     steps:
       - name: 📥 Checkout código do repositório
         uses: actions/checkout@v4
 
-      - name: ☕️ Configurar ambiente com Java 21 e Maven 3.13.0
+      - name: ☕️ Configurar ambiente com Java 21 e Maven
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
@@ -34,4 +35,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: "https://sonarcloud.io"
-        run: mvn sonar:sonar -Dsonar.organization=seu-org -Dsonar.projectKey=seu-projeto
+          SONAR_ORG: ${{ secrets.SONAR_ORG }}  # Variável para a organização no SonarCloud
+          SONAR_PROJECT_KEY: ${{ secrets.AUTH_SERVICE_SONAR_PROJECT_KEY }}  # Variável para o projectKey no SonarCloud
+        run: mvn sonar:sonar -Dsonar.organization=${{ secrets.SONAR_ORG }} -Dsonar.projectKey=${{ secrets.AUTH_SERVICE_SONAR_PROJECT_KEY }}
+
