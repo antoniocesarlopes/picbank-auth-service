@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.List;
 
+import static com.picbank.authservice.constants.MessageConstants.WORKER_SQS_ERROR_DLQ;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -158,7 +159,43 @@ class CognitoUserGroupWorkerTest {
 
         worker.consumeMessages();
 
-        verify(sqsClient).sendMessage(any(SendMessageRequest.class)); // Enviado para DLQ
+        verify(sqsClient).sendMessage(any(SendMessageRequest.class));
         verify(sqsClient).deleteMessage(any(DeleteMessageRequest.class));
     }
+
+    @Test
+    void shouldHandleMissingFieldsWhenKeysAreAbsent() throws JsonProcessingException {
+        String jsonWithoutKeys = "{}";
+        Message message = Message.builder().body(jsonWithoutKeys).receiptHandle("receipt123").build();
+
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username", null, null);
+
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+                .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
+        when(objectMapper.readValue(jsonWithoutKeys, CognitoUserGroupMessage.class)).thenReturn(payload);
+
+        worker.consumeMessages();
+
+        verify(sqsClient).sendMessage(any(SendMessageRequest.class));
+        verify(sqsClient).deleteMessage(any(DeleteMessageRequest.class));
+    }
+
+    @Test
+    void shouldHandleSqsExceptionWhenSendingToDlq() throws JsonProcessingException {
+        String validJson = "{\"email\":\"test@example.com\", \"group\":\"Merchant\"}";
+        Message message = Message.builder().body(validJson).receiptHandle("receipt123").build();
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username","test@example.com", "Merchant");
+
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+                .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
+        when(objectMapper.readValue(validJson, CognitoUserGroupMessage.class)).thenReturn(payload);
+        doThrow(new IllegalArgumentException("Unexpected error")).when(userGroupService).addUserToGroup(any(), any());
+        doThrow(SqsException.class).when(sqsClient).sendMessage(any(SendMessageRequest.class));
+
+        worker.consumeMessages();
+
+        verify(sqsClient, times(1)).sendMessage(any(SendMessageRequest.class));
+        verify(sqsClient, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    }
+
 }
