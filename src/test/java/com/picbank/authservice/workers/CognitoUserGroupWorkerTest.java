@@ -18,13 +18,14 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.List;
 
-import static com.picbank.authservice.constants.MessageConstants.WORKER_SQS_ERROR_DLQ;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CognitoUserGroupWorkerTest {
 
+    public static final String EMAIL = "test@example.com";
+    public static final String USERNAME = "username";
     @Mock private UserGroupService userGroupService;
     @Mock private SqsProperties sqsProperties;
     @Mock private ObjectMapper objectMapper;
@@ -44,7 +45,7 @@ class CognitoUserGroupWorkerTest {
         String validJson = "{\"email\":\"test@example.com\", \"group\":\"Merchant\"}";
         Message message = Message.builder().body(validJson).receiptHandle("receipt123").build();
 
-        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username", "test@example.com", CognitoUserGroup.MERCHANT.getGroupName());
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME, EMAIL, CognitoUserGroup.MERCHANT.getGroupName());
         when(sqsProperties.getQueueUrl()).thenReturn("test-queue-url");
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
                 .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
@@ -53,7 +54,7 @@ class CognitoUserGroupWorkerTest {
 
         worker.consumeMessages();
 
-        verify(userGroupService).addUserToGroup(CognitoUserGroup.MERCHANT, "test@example.com");
+        verify(userGroupService).addUserToGroup(CognitoUserGroup.MERCHANT, EMAIL);
         verify(emailService).sendEmail(any(), any(), any());
         verify(sqsClient).deleteMessage(any(DeleteMessageRequest.class));
     }
@@ -86,7 +87,39 @@ class CognitoUserGroupWorkerTest {
 
         worker.consumeMessages();
 
-        verify(sqsClient).sendMessage(any(SendMessageRequest.class)); // Enviado para DLQ
+        verify(sqsClient).sendMessage(any(SendMessageRequest.class));
+        verify(sqsClient).deleteMessage(any(DeleteMessageRequest.class));
+    }
+
+    @Test
+    void shouldHandleMissingFieldEmail() throws JsonProcessingException {
+        String jsonMissingFields = "{\"email\": null, \"group\":\"Merchant\"}";
+        Message message = Message.builder().body(jsonMissingFields).receiptHandle("receipt123").build();
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME,null, CognitoUserGroup.MERCHANT.getGroupName());
+
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+                .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
+        when(objectMapper.readValue(jsonMissingFields, CognitoUserGroupMessage.class)).thenReturn(payload);
+
+        worker.consumeMessages();
+
+        verify(sqsClient).sendMessage(any(SendMessageRequest.class));
+        verify(sqsClient).deleteMessage(any(DeleteMessageRequest.class));
+    }
+
+    @Test
+    void shouldHandleMissingFieldGroup() throws JsonProcessingException {
+        String jsonMissingFields = "{\"email\": null, \"group\": null}";
+        Message message = Message.builder().body(jsonMissingFields).receiptHandle("receipt123").build();
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME,EMAIL, null);
+
+        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+                .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
+        when(objectMapper.readValue(jsonMissingFields, CognitoUserGroupMessage.class)).thenReturn(payload);
+
+        worker.consumeMessages();
+
+        verify(sqsClient).sendMessage(any(SendMessageRequest.class));
         verify(sqsClient).deleteMessage(any(DeleteMessageRequest.class));
     }
 
@@ -94,7 +127,7 @@ class CognitoUserGroupWorkerTest {
     void shouldHandleInvalidGroup() throws JsonProcessingException {
         String jsonInvalidGroup = "{\"email\":\"test@example.com\", \"group\":\"InvalidGroup\"}";
         Message message = Message.builder().body(jsonInvalidGroup).receiptHandle("receipt123").build();
-        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username","test@example.com", "InvalidGroup");
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME, EMAIL, "InvalidGroup");
 
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
                 .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
@@ -110,7 +143,7 @@ class CognitoUserGroupWorkerTest {
     void shouldHandleEmailSendFailure() throws JsonProcessingException {
         String validJson = "{\"email\":\"test@example.com\", \"group\":\"Merchant\"}";
         Message message = Message.builder().body(validJson).receiptHandle("receipt123").build();
-        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username","test@example.com", "Merchant");
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME, EMAIL, CognitoUserGroup.MERCHANT.getGroupName());
 
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
                 .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
@@ -150,7 +183,7 @@ class CognitoUserGroupWorkerTest {
     void shouldHandleGeneralProcessingError() throws JsonProcessingException {
         String validJson = "{\"email\":\"test@example.com\", \"group\":\"Merchant\"}";
         Message message = Message.builder().body(validJson).receiptHandle("receipt123").build();
-        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username","test@example.com", "Merchant");
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME, EMAIL, CognitoUserGroup.MERCHANT.getGroupName());
 
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
                 .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
@@ -168,7 +201,7 @@ class CognitoUserGroupWorkerTest {
         String jsonWithoutKeys = "{}";
         Message message = Message.builder().body(jsonWithoutKeys).receiptHandle("receipt123").build();
 
-        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username", null, null);
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME, null, null);
 
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
                 .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
@@ -184,7 +217,7 @@ class CognitoUserGroupWorkerTest {
     void shouldHandleSqsExceptionWhenSendingToDlq() throws JsonProcessingException {
         String validJson = "{\"email\":\"test@example.com\", \"group\":\"Merchant\"}";
         Message message = Message.builder().body(validJson).receiptHandle("receipt123").build();
-        CognitoUserGroupMessage payload = new CognitoUserGroupMessage("username","test@example.com", "Merchant");
+        CognitoUserGroupMessage payload = new CognitoUserGroupMessage(USERNAME, EMAIL, CognitoUserGroup.MERCHANT.getGroupName());
 
         when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
                 .thenReturn(ReceiveMessageResponse.builder().messages(List.of(message)).build());
