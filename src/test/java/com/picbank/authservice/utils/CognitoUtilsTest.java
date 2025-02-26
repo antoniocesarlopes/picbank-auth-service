@@ -1,7 +1,6 @@
-package com.picbank.authservice.util;
+package com.picbank.authservice.utils;
 
 import com.picbank.authservice.services.MessageService;
-import com.picbank.authservice.utils.CognitoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

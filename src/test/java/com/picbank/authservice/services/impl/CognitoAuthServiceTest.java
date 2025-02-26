@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
@@ -103,6 +104,25 @@ class CognitoAuthServiceTest {
     }
 
     @Test
+    void shouldThrowAuthExceptionOnUnexpectedErrorDuringLogin() {
+        when(cognitoClient.initiateAuth(any(InitiateAuthRequest.class)))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        when(messageService.getMessage(AUTH_LOGIN_START, loginRequest.getUsername()))
+                .thenReturn("Mocked Message AUTH_LOGIN_START");
+        when(messageService.getMessage(AUTH_ERROR_UNEXPECTED, loginRequest.getUsername(), "Unexpected error"))
+                .thenReturn("Mocked Message AUTH_ERROR_UNEXPECTED");
+        when(messageService.getMessage(AUTH_ERROR_UNEXPECTED))
+                .thenReturn("Mocked Message AUTH_ERROR_UNEXPECTED");
+
+        AuthException exception = assertThrows(AuthException.class, () -> {
+            authService.login(loginRequest);
+        });
+
+        assertEquals("Mocked Message AUTH_ERROR_UNEXPECTED", exception.getMessage());
+    }
+
+    @Test
     void shouldRegisterUserSuccessfully() {
         SdkHttpResponse sdkHttpResponse = mock(SdkHttpResponse.class);
         when(sdkHttpResponse.isSuccessful()).thenReturn(true);
@@ -119,6 +139,27 @@ class CognitoAuthServiceTest {
         verify(cognitoClient, times(1)).signUp(any(SignUpRequest.class));
         verify(queueService, times(1)).sendMessage("test@example.com", CognitoUserGroup.MERCHANT.name());
     }
+
+    @Test
+    void shouldRegisterStandardUserSuccessfully() {
+        registerRequest = new RegisterRequest("Test User", "password123", "test@example.com", "12345678900", false); // STANDARD user
+
+        SdkHttpResponse sdkHttpResponse = mock(SdkHttpResponse.class);
+        when(sdkHttpResponse.isSuccessful()).thenReturn(true);
+
+        SignUpResponse signUpResponse = mock(SignUpResponse.class);
+        when(signUpResponse.sdkHttpResponse()).thenReturn(sdkHttpResponse);
+
+        when(cognitoClient.signUp(any(SignUpRequest.class))).thenReturn(signUpResponse);
+
+        var response = authService.register(registerRequest);
+
+        assertEquals(201, response.value());
+
+        verify(cognitoClient, times(1)).signUp(any(SignUpRequest.class));
+        verify(queueService, times(1)).sendMessage("test@example.com", CognitoUserGroup.STANDARD.name());
+    }
+
 
     @Test
     void shouldReturnBadRequestWhenRegistrationFails() {
@@ -154,5 +195,41 @@ class CognitoAuthServiceTest {
 
         assertTrue(exception.getMessage().contains("Mocked Message AUTH_ERROR_COGNITO"));
     }
+
+    @Test
+    void shouldThrowCognitoOperationExceptionOnSdkClientExceptionDuringRegister() {
+        SdkClientException sdkClientException = mock(SdkClientException.class);
+        when(sdkClientException.getMessage()).thenReturn("Mocked Message AUTH_ERROR_INTERNAL");
+
+        when(messageService.getMessage(AUTH_REGISTER_START, registerRequest.getEmail())).thenReturn("Mocked Message AUTH_REGISTER_START");
+        when(messageService.getMessage(AUTH_ERROR_INTERNAL, registerRequest.getEmail(), sdkClientException.getMessage())).thenReturn("Mocked Message AUTH_ERROR_INTERNAL");
+        when(cognitoClient.signUp(any(SignUpRequest.class))).thenThrow(sdkClientException);
+
+        CognitoOperationException exception = assertThrows(CognitoOperationException.class, () -> {
+            authService.register(registerRequest);
+        });
+
+        assertTrue(exception.getMessage().contains("Mocked Message AUTH_ERROR_INTERNAL"));
+    }
+
+    @Test
+    void shouldThrowCognitoOperationExceptionOnUnexpectedErrorDuringRegister() {
+        RuntimeException unexpectedException = new RuntimeException("Unexpected registration error");
+
+        when(cognitoClient.signUp(any(SignUpRequest.class)))
+                .thenThrow(unexpectedException);
+
+        when(messageService.getMessage(AUTH_REGISTER_START, registerRequest.getEmail()))
+                .thenReturn("Mocked Message AUTH_REGISTER_START");
+        when(messageService.getMessage(AUTH_ERROR_UNEXPECTED, registerRequest.getEmail(), "Unexpected registration error"))
+                .thenReturn("Mocked Message AUTH_ERROR_UNEXPECTED");
+
+        CognitoOperationException exception = assertThrows(CognitoOperationException.class, () -> {
+            authService.register(registerRequest);
+        });
+
+        assertTrue(exception.getMessage().contains("Mocked Message AUTH_ERROR_UNEXPECTED"));
+    }
+
 
 }
