@@ -50,4 +50,6 @@ public final class MessageConstants {
     public static final String WORKER_SQS_ERROR_CONSUMING = "worker.sqs.error.consuming";
     public static final String WORKER_SQS_ERROR_PROCESSING = "worker.sqs.error.processing";
     public static final String WORKER_SQS_ERROR_DLQ = "worker.sqs.error.dlq";
+
+    public static final String UNKNOWN_ERROR = "application.error.unknown";
 }

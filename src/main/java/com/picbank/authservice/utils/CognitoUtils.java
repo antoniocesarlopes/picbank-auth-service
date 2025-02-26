@@ -51,9 +51,11 @@ public final class CognitoUtils {
             log.info(messageService.getMessage(COGNITO_HASH_SUCCESS, username));
             return secretHash;
         } catch (Exception e) {
-            String errorMessage = messageService.getMessage(COGNITO_HASH_ERROR, username, e.getMessage());
+            String errorDetails = e.getMessage() != null ? e.getMessage() : UNKNOWN_ERROR;
+            String errorMessage = messageService.getMessage(COGNITO_HASH_ERROR, username, errorDetails);
             log.error(errorMessage, e);
             throw new IllegalStateException(errorMessage, e);
         }
     }
+
 }
