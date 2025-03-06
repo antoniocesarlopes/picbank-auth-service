@@ -4,6 +4,7 @@ import com.picbank.authservice.components.CognitoProperties;
 import com.picbank.authservice.exceptions.AuthException;
 import com.picbank.authservice.exceptions.CognitoOperationException;
 import com.picbank.authservice.model.AuthResponse;
+import com.picbank.authservice.model.ConfirmEmailRequest;
 import com.picbank.authservice.model.LoginRequest;
 import com.picbank.authservice.model.RegisterRequest;
 import com.picbank.authservice.model.enums.CognitoUserGroup;
@@ -72,6 +73,22 @@ public class CognitoAuthService implements AuthService {
                         AttributeType.builder().name("name").value(registerRequest.getName()).build(),
                         AttributeType.builder().name("custom:document").value(registerRequest.getDocument()).build()
                 )
+                .build();
+    }
+
+    /**
+     * Builds a ConfirmSignUpRequest for AWS Cognito email confirmation.
+     *
+     * @param request    The request containing the email and confirmation code.
+     * @param secretHash The secret hash used for client authentication.
+     * @return A ConfirmSignUpRequest object ready to be sent to AWS Cognito.
+     */
+    private ConfirmSignUpRequest getConfirmSignUpRequest(ConfirmEmailRequest request, String secretHash) {
+        return ConfirmSignUpRequest.builder()
+                .clientId(cognitoProperties.getClientId())
+                .secretHash(secretHash)
+                .username(request.getEmail())
+                .confirmationCode(request.getConfirmationCode())
                 .build();
     }
 
@@ -171,7 +188,39 @@ public class CognitoAuthService implements AuthService {
             log.error(errorMessage, e);
             throw new CognitoOperationException(errorMessage, e);
         }
+    }
 
+    /**
+     * Confirms a user's email in AWS Cognito using the provided confirmation code.
+     *
+     * @param request The request containing the email and confirmation code.
+     * @throws CognitoOperationException If the confirmation fails due to an invalid code,
+     *                                   user not found, or an unexpected error occurs.
+     */
+    @Override
+    public void confirmEmail(ConfirmEmailRequest request) {
+        log.info(messageService.getMessage(AUTH_CONFIRM_EMAIL_START, request.getEmail(), request.getConfirmationCode()));
+
+        var secretHash = cognitoUtils.calculateSecretHash(
+                cognitoProperties.getClientId(),
+                cognitoProperties.getClientSecret(),
+                request.getEmail()
+        );
+
+        try {
+            var response = getConfirmSignUpRequest(request, secretHash);
+            cognitoClient.confirmSignUp(response);
+
+            log.info(messageService.getMessage(AUTH_CONFIRM_EMAIL_SUCCESS, request.getEmail()));
+        } catch (CognitoIdentityProviderException e) {
+            String errorMessage = messageService.getMessage(AUTH_CONFIRM_EMAIL_FAILURE, request.getEmail(), e.awsErrorDetails().errorMessage());
+            log.error(errorMessage, e);
+            throw new CognitoOperationException(errorMessage, e);
+        } catch (Exception e) {
+            String errorMessage = messageService.getMessage(AUTH_CONFIRM_EMAIL_UNEXPECTED, request.getEmail(), e.getMessage());
+            log.error(errorMessage, e);
+            throw new CognitoOperationException(errorMessage, e);
+        }
     }
 
 }

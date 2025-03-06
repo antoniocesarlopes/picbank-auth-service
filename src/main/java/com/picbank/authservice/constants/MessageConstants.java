@@ -8,6 +8,10 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class MessageConstants {
 
+    public static final String AUTH_CONFIRM_EMAIL_START = "auth.confirm.email.start";
+    public static final String AUTH_CONFIRM_EMAIL_SUCCESS = "auth.confirm.email.success";
+    public static final String AUTH_CONFIRM_EMAIL_FAILURE = "auth.confirm.email.failure";
+    public static final String AUTH_CONFIRM_EMAIL_UNEXPECTED = "auth.confirm.email.unexpected";
     public static final String AUTH_SUCCESS_TOKEN = "auth.success.token";
     public static final String AUTH_LOGIN_START = "auth.login.start";
     public static final String AUTH_ERROR_COGNITO = "auth.error.cognito";

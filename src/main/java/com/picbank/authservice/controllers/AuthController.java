@@ -2,6 +2,7 @@ package com.picbank.authservice.controllers;
 
 import com.picbank.authservice.api.AuthApi;
 import com.picbank.authservice.model.AuthResponse;
+import com.picbank.authservice.model.ConfirmEmailRequest;
 import com.picbank.authservice.model.LoginRequest;
 import com.picbank.authservice.model.RegisterRequest;
 import com.picbank.authservice.services.AuthService;
@@ -25,6 +26,12 @@ public class AuthController implements AuthApi {
     public ResponseEntity<Void> register(RegisterRequest registerRequest) {
         var status = authService.register(registerRequest);
         return ResponseEntity.status(status).build();
+    }
+
+    @Override
+    public ResponseEntity<Void> confirmEmail(ConfirmEmailRequest confirmEmailRequest) {
+        authService.confirmEmail(confirmEmailRequest);
+        return ResponseEntity.ok().build();
     }
 }
 

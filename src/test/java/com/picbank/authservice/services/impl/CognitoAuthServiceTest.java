@@ -4,6 +4,7 @@ import com.picbank.authservice.components.CognitoProperties;
 import com.picbank.authservice.exceptions.AuthException;
 import com.picbank.authservice.exceptions.CognitoOperationException;
 import com.picbank.authservice.model.AuthResponse;
+import com.picbank.authservice.model.ConfirmEmailRequest;
 import com.picbank.authservice.model.LoginRequest;
 import com.picbank.authservice.model.RegisterRequest;
 import com.picbank.authservice.model.enums.CognitoUserGroup;
@@ -231,5 +232,77 @@ class CognitoAuthServiceTest {
         assertTrue(exception.getMessage().contains("Mocked Message AUTH_ERROR_UNEXPECTED"));
     }
 
+    @Test
+    void shouldConfirmEmailSuccessfully() {
+        // Arrange
+        String email = "test@example.com";
+        String confirmationCode = "123456";
+        ConfirmEmailRequest request = new ConfirmEmailRequest(email, confirmationCode);
+
+        // Act
+        authService.confirmEmail(request);
+
+        // Assert
+        verify(messageService).getMessage(AUTH_CONFIRM_EMAIL_START, email, confirmationCode);
+        verify(messageService).getMessage(AUTH_CONFIRM_EMAIL_SUCCESS, email);
+        verify(cognitoClient).confirmSignUp(any(ConfirmSignUpRequest.class));
+    }
+
+    @Test
+    void shouldThrowCognitoOperationExceptionWhenConfirmSignUpFails() {
+        // Arrange
+        String email = "test@example.com";
+        String confirmationCode = "123456";
+        ConfirmEmailRequest request = new ConfirmEmailRequest(email, confirmationCode);
+
+        CognitoIdentityProviderException cognitoException = mock(CognitoIdentityProviderException.class);
+        AwsErrorDetails awsErrorDetails = mock(AwsErrorDetails.class);
+        when(cognitoException.awsErrorDetails()).thenReturn(awsErrorDetails);
+        when(awsErrorDetails.errorMessage()).thenReturn("Cognito error");
+
+        when(messageService.getMessage(AUTH_CONFIRM_EMAIL_START, email, confirmationCode))
+                .thenReturn("Mocked Message AUTH_CONFIRM_EMAIL_START");
+
+        when(messageService.getMessage(AUTH_CONFIRM_EMAIL_FAILURE, email, "Cognito error"))
+                .thenReturn("Mocked Message AUTH_CONFIRM_EMAIL_FAILURE");
+
+        when(cognitoClient.confirmSignUp(any(ConfirmSignUpRequest.class))).thenThrow(cognitoException);
+
+        // Act & Assert
+        CognitoOperationException exception = assertThrows(CognitoOperationException.class, () -> authService.confirmEmail(request));
+
+        assertTrue(exception.getMessage().contains("Mocked Message AUTH_CONFIRM_EMAIL_FAILURE"));
+
+        // Verificações
+        verify(messageService).getMessage(AUTH_CONFIRM_EMAIL_START, email, confirmationCode);
+        verify(messageService).getMessage(AUTH_CONFIRM_EMAIL_FAILURE, email, "Cognito error");
+        verify(cognitoClient).confirmSignUp(any(ConfirmSignUpRequest.class));
+    }
+
+    @Test
+    void shouldThrowCognitoOperationExceptionWhenUnexpectedExceptionOccurs() {
+        // Arrange
+        String email = "test@example.com";
+        String confirmationCode = "123456";
+        ConfirmEmailRequest request = new ConfirmEmailRequest(email, confirmationCode);
+
+        RuntimeException unexpectedException = new RuntimeException("Unexpected error");
+
+        when(messageService.getMessage(AUTH_CONFIRM_EMAIL_START, email, confirmationCode))
+                .thenReturn("Mocked Message AUTH_CONFIRM_EMAIL_START");
+
+        when(messageService.getMessage(AUTH_CONFIRM_EMAIL_UNEXPECTED, email, "Unexpected error"))
+                .thenReturn("Mocked Message AUTH_CONFIRM_EMAIL_UNEXPECTED");
+
+        when(cognitoClient.confirmSignUp(any(ConfirmSignUpRequest.class)))
+                .thenThrow(unexpectedException);
+
+        // Act & Assert
+        CognitoOperationException exception = assertThrows(CognitoOperationException.class, () -> {
+            authService.confirmEmail(request);
+        });
+
+        assertTrue(exception.getMessage().contains("Mocked Message AUTH_CONFIRM_EMAIL_UNEXPECTED"));
+    }
 
 }

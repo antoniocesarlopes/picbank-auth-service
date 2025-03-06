@@ -42,6 +42,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /auth/confirm:
+    post:
+      summary: Confirms a user's email using the verification code received
+      operationId: confirmEmail
+      x-controller: AuthController
+      requestBody:
+        description: Email confirmation request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailRequest'
+      responses:
+        '200':
+          description: Email confirmed successfully
+        '400':
+          description: Validation error or incorrect confirmation code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /auth/login:
     post:
       summary: Login a user using AWS Cognito
@@ -137,6 +165,20 @@ components:
           type: string
         newDeviceMetadata:
           type: object
+
+    ConfirmEmailRequest:
+      type: object
+      required:
+        - email
+        - confirmationCode
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        confirmationCode:
+          type: string
+          example: "123456"
 
     ErrorResponse:
       type: object
