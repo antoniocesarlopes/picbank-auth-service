@@ -1,6 +1,7 @@
 package com.picbank.authservice.controllers;
 
 import com.picbank.authservice.model.AuthResponse;
+import com.picbank.authservice.model.ConfirmEmailRequest;
 import com.picbank.authservice.model.LoginRequest;
 import com.picbank.authservice.model.RegisterRequest;
 import com.picbank.authservice.services.AuthService;
@@ -29,6 +30,7 @@ class AuthControllerTest {
     private LoginRequest loginRequest;
     private RegisterRequest registerRequest;
     private AuthResponse authResponse;
+    private ConfirmEmailRequest confirmEmailRequest;
 
     @BeforeEach
     void setUp() {
@@ -46,6 +48,10 @@ class AuthControllerTest {
         authResponse.setAccessToken("token123");
         authResponse.setExpiresIn(3600);
         authResponse.setTokenType("Bearer");
+
+        confirmEmailRequest = new ConfirmEmailRequest();
+        confirmEmailRequest.setEmail("user@example.com");
+        confirmEmailRequest.setConfirmationCode("confirmCode123");
     }
 
     @Test
@@ -89,5 +95,17 @@ class AuthControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(authService, times(1)).register(registerRequest);
+    }
+
+    @Test
+    void shouldReturnOkWhenConfirmEmailSuccess() {
+
+        // Act
+        var response = authController.confirmEmail(confirmEmailRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(authService, times(1)).confirmEmail(confirmEmailRequest);
     }
 }
