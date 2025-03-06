@@ -81,15 +81,25 @@ picbank-auth-service/
 
 Before running the project, you must configure the following environment variables:
 
-| **Variable**               | **Description**                          | **Example** |
-|----------------------------|------------------------------------------|-------------|
-| `AWS_REGION`               | AWS region for Cognito and SQS          | `us-east-1` |
-| `AWS_ACCESS_KEY_ID`        | AWS IAM Access Key                      | `AKIAXXXXXXX` |
-| `AWS_SECRET_ACCESS_KEY`    | AWS IAM Secret Key                      | `wJalrXUtnFEMI/K7MDENG/bPxRfiCY` |
-| `COGNITO_USER_POOL_ID`     | AWS Cognito User Pool ID                | `us-east-1_XXXXXXX` |
-| `COGNITO_CLIENT_ID`        | AWS Cognito App Client ID               | `xxxxxxxxxxxxxxxxxxxxxx` |
-| `SQS_QUEUE_URL`            | AWS SQS Queue URL                       | `https://sqs.us-east-1.amazonaws.com/123456789012/queue-name` |
-| `SES_SENDER_EMAIL`         | Email for AWS SES                       | `noreply@yourdomain.com` |
+| **Variable** | **Description** | **Example** |
+|----------------------------|------------------------------------------|--------------------------------------------------------------------------------------|
+| `SERVER_PORT`              | Port the server will run on              | `8080`                                                                               |
+| `SERVER_CONTEXT_PATH`      | Context path for the server API          | `/api`                                                                               |
+| `AWS_REGION`               | AWS region for Cognito and SQS          | `us-east-1`                                                                           |
+| `AWS_ACCESS_KEY_ID`        | AWS IAM Access Key                      | `(Provide your AWS Access Key ID)`                                                   |
+| `AWS_SECRET_ACCESS_KEY`    | AWS IAM Secret Key                      | `(Provide your AWS Secret Access Key)`                                               |
+| `AWS_COGNITO_USER_POOL_ID`     | AWS Cognito User Pool ID                | `(Provide your AWS Cognito User Pool ID)`                                            |
+| `AWS_COGNITO_CLIENT_ID`        | AWS Cognito App Client ID               | `(Provide your AWS Cognito App Client ID)`                                           |
+| `AWS_COGNITO_CLIENT_SECRET` | AWS Cognito App Client Secret           | `(Provide your AWS Cognito App Client Secret)`                                       |
+| `AWS_COGNITO_REDIRECT_URI` | AWS Cognito Redirect URI                | `(Provide your AWS Cognito Redirect URI)`                                           |
+| `AWS_COGNITO_ISSUER_URI`   | AWS Cognito Issuer URI                  | `(Provide your AWS Cognito Issuer URI)`                                             |
+| `AWS_COGNITO_JWK_SET_URI`   | AWS Cognito JWK Set URI                 | `(Provide your AWS Cognito JWK Set URI)`                                             |
+| `AWS_SQS_QUEUE_URL`            | AWS SQS Queue URL                       | `(Provide your AWS SQS Queue URL)`                                                   |
+| `AWS_SQS_DLQ_URL`            | AWS SQS Dead Letter Queue URL           | `(Provide your AWS SQS Dead Letter Queue URL)`                                       |
+| `AWS_SQS_FIXED_RATE_MS`      | AWS SQS Fixed Rate (milliseconds)        | `60000`                                                                              |
+| `AWS_SQS_MAX_MESSAGES`       | AWS SQS Maximum Messages to Receive     | `5`                                                                                |
+| `AWS_SQS_WAIT_TIME_SECONDS`  | AWS SQS Wait Time (seconds)              | `10`                                                                               |
+| `AWS_SES_SENDER_EMAIL`         | Email for AWS SES                       | `(Provide your AWS SES Sender Email)`                                                |
 
 > ⚠️ **Important:** Never hardcode secrets. Use `.env` files or AWS Secrets Manager.
 
@@ -141,13 +151,23 @@ If you prefer, you can run the service using Docker.
 #### **Option 1: Run with environment variables manually**
 ```sh
 docker run -p 8080:8080 \
+  -e SERVER_PORT=8080 \
+  -e SERVER_CONTEXT_PATH=/api \
   -e AWS_REGION=us-east-1 \
-  -e AWS_ACCESS_KEY_ID=your-access-key \
-  -e AWS_SECRET_ACCESS_KEY=your-secret-key \
-  -e COGNITO_USER_POOL_ID=your-user-pool-id \
-  -e COGNITO_CLIENT_ID=your-client-id \
-  -e SQS_QUEUE_URL=your-sqs-url \
-  -e SES_SENDER_EMAIL=noreply@yourdomain.com \
+  -e AWS_ACCESS_KEY_ID=(Provide your AWS Access Key ID) \
+  -e AWS_SECRET_ACCESS_KEY=(Provide your AWS Secret Access Key) \
+  -e AWS_COGNITO_USER_POOL_ID=(Provide your AWS Cognito User Pool ID) \
+  -e AWS_COGNITO_CLIENT_ID=(Provide your AWS Cognito App Client ID) \
+  -e AWS_COGNITO_CLIENT_SECRET=(Provide your AWS Cognito App Client Secret) \
+  -e AWS_COGNITO_REDIRECT_URI=(Provide your AWS Cognito Redirect URI) \
+  -e AWS_COGNITO_ISSUER_URI=(Provide your AWS Cognito Issuer URI) \
+  -e AWS_COGNITO_JWK_SET_URI=(Provide your AWS Cognito JWK Set URI) \
+  -e AWS_SQS_QUEUE_URL=(Provide your AWS SQS Queue URL) \
+  -e AWS_SQS_DLQ_URL=(Provide your AWS SQS Dead Letter Queue URL) \
+  -e AWS_SQS_FIXED_RATE_MS=60000 \
+  -e AWS_SQS_MAX_MESSAGES=5 \
+  -e AWS_SQS_WAIT_TIME_SECONDS=10 \
+  -e AWS_SES_SENDER_EMAIL=(Provide your AWS SES Sender Email) \
   picbank-auth-service
 ```
 
