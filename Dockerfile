@@ -17,7 +17,7 @@ FROM amazoncorretto:21.0.6-alpine3.21
 WORKDIR /app
 
 # Copies the JAR generated in the build stage to the final container
-COPY --from=builder /app/target/auth-service-*.jar picbank-auth-service.jar
+COPY --from=builder /app/target/picbank-auth-service-*.jar picbank-auth-service.jar
 
 # Specifies the port exposed by the container
 EXPOSE 8080
